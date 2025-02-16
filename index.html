@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chronological Timeline of the Evolution of Dating Media and Technology</title>
+  <style>
+    /* 全局基础样式 */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      /* 背景从顶部青色过渡到底部红色 */
+      background: linear-gradient(180deg, #00bcd4, #f44336);
+      color: #333;
+      transition: background 0.5s ease;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      text-align: center;
+      z-index: 1100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      /* 使用渐变文字效果（仅支持部分浏览器） */
+      background: -webkit-linear-gradient(#333, #555);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ------------------------------ */
+    /* 开场全屏蓝色标题 */
+    #intro {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: #2196f3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1200;
+      transition: transform 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+    }
+    #intro h1 {
+      color: #fff;
+      font-size: 42px;
+      text-align: center;
+      margin: 0;
+      margin-bottom: 10px;
+    }
+    #intro p {
+      color: #fff;
+      font-size: 18px;
+      margin: 0;
+    }
+
+    /* ------------------------------ */
+    /* 时间轴容器及贯穿的灰色连接线 */
+    .timeline {
+      max-width: 1200px;
+      margin: 40px auto;
+      position: relative;
+      padding: 20px;
+      z-index: 0;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      background: #ddd;
+      border-radius: 3px;
+      z-index: -1;
+    }
+
+    /* ------------------------------ */
+    /* 当前进度指示条：位于灰色竖线上方，但低于其他交互层 */
+    #progress-line {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 100px;
+      background: linear-gradient(to bottom, #ddd, #f0f0f0, #ddd);
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      z-index: 0;
+      pointer-events: none;
+      transition: height 0.2s, top 0.2s;
+    }
+
+    /* ------------------------------ */
+    /* 装饰性图标 */
+    .decorative {
+      position: absolute;
+      opacity: 0.1;
+      font-size: 100px;
+    }
+    .decorative.newspaper { top: 10%; left: 5%; }
+    .decorative.tv { top: 30%; right: 5%; }
+    .decorative.mobile { bottom: 20%; left: 10%; }
+
+    /* ------------------------------ */
+    /* 分段（Segment）样式 —— 每个时间段的概览 */
+    .segment {
+      margin: 60px 0;
+      position: relative;
+      text-align: center;
+    }
+    /* 大圆点样式（点击展开分段详情） */
+    .summary-dot {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto;
+      background: #fff;
+      border: 5px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      cursor: pointer;
+      opacity: 0;
+      transform: scale(0.5);
+      z-index: 2;
+      animation: pulse 2s infinite;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .summary-dot.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    /* 各分段大圆点的边框颜色 */
+    .early-newspaper { border-color: #ff6f61; }
+    .evolution-decline { border-color: #6b5b95; }
+    .radio-tv { border-color: #feb236; }
+    .online-video { border-color: #d64161; }
+    .rise-online { border-color: #ff7b25; }
+    .era-apps { border-color: #80ced6; }
+    .summary-label {
+      margin-top: 10px;
+      font-size: 16px;
+      opacity: 0;
+      animation: labelPulse 2s infinite;
+      transition: opacity 0.3s ease;
+    }
+    /* 展开时取消动画，始终显示 */
+    .segment.expanded .summary-dot {
+      animation: none;
+      transform: scale(1) !important;
+    }
+    .segment.expanded .summary-label {
+      animation: none;
+      opacity: 1 !important;
+    }
+    .segment-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.8s ease;
+      position: relative;
+    }
+    .segment.expanded .segment-details {
+      max-height: 2000px;
+    }
+
+    /* ------------------------------ */
+    /* 内部事件板块 */
+    .event-container {
+      padding: 10px 40px;
+      position: relative;
+      width: 50%;
+      margin-bottom: 30px;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .segment.expanded .event-container {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .event-container.left {
+      float: left;
+      clear: both;
+      text-align: right;
+    }
+    .event-container.right {
+      float: right;
+      clear: both;
+      text-align: left;
+    }
+    .event-container::after {
+      content: '';
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      background: #fff;
+      border: 4px solid;
+      top: 15px;
+      border-radius: 50%;
+    }
+    .event-container.left::after { right: -17px; }
+    .event-container.right::after { left: -17px; }
+    .early-newspaper.event-container::after { border-color: #ff6f61; }
+    .evolution-decline.event-container::after { border-color: #6b5b95; }
+    .radio-tv.event-container::after { border-color: #feb236; }
+    .online-video.event-container::after { border-color: #d64161; }
+    .rise-online.event-container::after { border-color: #ff7b25; }
+    .era-apps.event-container::after { border-color: #80ced6; }
+    
+    .content {
+      padding: 20px 30px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .content:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+    .content h2 {
+      margin-top: 0;
+    }
+    .content p {
+      margin: 10px 0 0;
+      line-height: 1.6;
+    }
+    .segment-details::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    /* ------------------------------ */
+    /* 关键帧动画 */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    @keyframes labelPulse {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    /* 为各分段添加延时 */
+    .segment:nth-of-type(1) .summary-dot { animation-delay: 0s; }
+    .segment:nth-of-type(2) .summary-dot { animation-delay: 0.3s; }
+    .segment:nth-of-type(3) .summary-dot { animation-delay: 0.6s; }
+    .segment:nth-of-type(4) .summary-dot { animation-delay: 0.9s; }
+    .segment:nth-of-type(5) .summary-dot { animation-delay: 1.2s; }
+    .segment:nth-of-type(6) .summary-dot { animation-delay: 1.5s; }
+    .segment:nth-of-type(1) .summary-label { animation-delay: 0s; }
+    .segment:nth-of-type(2) .summary-label { animation-delay: 0.3s; }
+    .segment:nth-of-type(3) .summary-label { animation-delay: 0.6s; }
+    .segment:nth-of-type(4) .summary-label { animation-delay: 0.9s; }
+    .segment:nth-of-type(5) .summary-label { animation-delay: 1.2s; }
+    .segment:nth-of-type(6) .summary-label { animation-delay: 1.5s; }
+    
+    /* ------------------------------ */
+    /* 结束页 */
+    #conclusion {
+      height: 100vh;
+      background: #f44336;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(50px);
+      transition: opacity 1s ease, transform 1s ease;
+      padding: 20px;
+      z-index: 500;
+    }
+    #conclusion.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #conclusion h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+    #conclusion p {
+      font-size: 18px;
+      max-width: 800px;
+      margin-bottom: 20px;
+    }
+    #conclusion footer p {
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 开场全屏标题 -->
+  <div id="intro">
+    <h1>Chronological Timeline of the Evolution of Dating Media and Technology</h1>
+    <p>By Hanxi Bao</p>
+  </div>
+
+  <header>
+    <h1>Chronological Timeline of the Evolution of Dating Media and Technology</h1>
+  </header>
+
+  <!-- 当前进度指示条 -->
+  <div id="progress-line"></div>
+
+  <div class="timeline">
+    <!-- 装饰性图标 -->
+    <div class="decorative newspaper">📰</div>
+    <div class="decorative tv">📺</div>
+    <div class="decorative mobile">📱</div>
+
+    <!-- 分段 1：Early Newspaper Personal Ads & Matrimonial Services -->
+    <div class="segment early-newspaper" data-segment="early-newspaper">
+      <div class="summary-dot early-newspaper">
+        <span class="icon">📰</span>
+      </div>
+      <div class="summary-label">
+        1759-1898<br>Early Newspaper Personal Ads & Matrimonial Services
+      </div>
+      <div class="segment-details">
+        <div class="event-container left early-newspaper">
+          <div class="content">
+            <h2>1759</h2>
+            <p>The Boston Evening-Post publishes one of the earliest known personal ads in the U.S., seeking a young lady between 18 and 23.</p>
+          </div>
+        </div>
+        <div class="event-container right early-newspaper">
+          <div class="content">
+            <h2>1866</h2>
+            <p>The New York Herald begins featuring personal ads on its front page, signaling their growing popularity.</p>
+          </div>
+        </div>
+        <div class="event-container left early-newspaper">
+          <div class="content">
+            <h2>1870</h2>
+            <p>Leslie Fraser Duncan establishes Matrimonial News in England, offering 40-word ads for six pence.</p>
+          </div>
+        </div>
+        <div class="event-container right early-newspaper">
+          <div class="content">
+            <h2>1898</h2>
+            <p>Round-About, a unique magazine in England, is founded for companionship ads, reflecting a shift from marriage-focused ads to seeking correspondence and relationships.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段 2：Evolution & Decline of Newspaper Personal Ads -->
+    <div class="segment evolution-decline" data-segment="evolution-decline">
+      <div class="summary-dot evolution-decline">
+        <span class="icon">📰</span>
+      </div>
+      <div class="summary-label">
+        1900s-1950s<br>Evolution & Decline of Newspaper Personal Ads
+      </div>
+      <div class="segment-details">
+        <div class="event-container left evolution-decline">
+          <div class="content">
+            <h2>Early 20th Century</h2>
+            <p>Ads seeking companionship or correspondence, rather than strictly marriage, become more frequent.</p>
+          </div>
+        </div>
+        <div class="event-container right evolution-decline">
+          <div class="content">
+            <h2>1921</h2>
+            <p>The Link is charged for "corrupting public morals" after gay men discreetly place ads seeking other men.</p>
+          </div>
+        </div>
+        <div class="event-container left evolution-decline">
+          <div class="content">
+            <h2>1930s-1950s</h2>
+            <p>The number of personal ads in the U.S. drastically declines due to increasing social acceptance of dating, co-ed colleges, and car culture.</p>
+          </div>
+        </div>
+        <div class="event-container right evolution-decline">
+          <div class="content">
+            <h2>1946</h2>
+            <p>The Hobby Directory, the earliest periodical for gay personals, is established by the National Association of Hobbyists for Men and Boys.</p>
+          </div>
+        </div>
+        <div class="event-container left evolution-decline">
+          <div class="content">
+            <h2>1961</h2>
+            <p>Matrimonial ads largely disappear in England.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段 3：Radio & TV Dating Shows -->
+    <div class="segment radio-tv" data-segment="radio-tv">
+      <div class="summary-dot radio-tv">
+        <span class="icon">📺</span>
+      </div>
+      <div class="summary-label">
+        1940s-1960s<br>Radio & TV Dating Shows
+      </div>
+      <div class="segment-details">
+        <div class="event-container right radio-tv">
+          <div class="content">
+            <h2>1943-1946</h2>
+            <p>Blind Date, a radio show, airs where participants date without seeing each other, laying the foundation for dating game shows.</p>
+          </div>
+        </div>
+        <div class="event-container left radio-tv">
+          <div class="content">
+            <h2>1953</h2>
+            <p>Blind Date transitions to television, becoming one of the first TV dating shows.</p>
+          </div>
+        </div>
+        <div class="event-container right radio-tv">
+          <div class="content">
+            <h2>1965</h2>
+            <p>The Dating Game premieres on ABC, featuring a bachelor/bachelorette questioning three hidden contestants, shaping the dating show genre.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段 4：Online & Video Dating Beginnings -->
+    <div class="segment online-video" data-segment="online-video">
+      <div class="summary-dot online-video">
+        <span class="icon">💻</span>
+      </div>
+      <div class="summary-label">
+        1960s-1980s<br>Online & Video Dating Beginnings
+      </div>
+      <div class="segment-details">
+        <div class="event-container left online-video">
+          <div class="content">
+            <h2>1965</h2>
+            <p>Operation Match launches at Harvard, using questionnaires and an IBM 1401 computer to match students.</p>
+          </div>
+        </div>
+        <div class="event-container right online-video">
+          <div class="content">
+            <h2>1974</h2>
+            <p>Cherry Blossoms, one of the oldest mail-order bride agencies, launches.</p>
+          </div>
+        </div>
+        <div class="event-container left online-video">
+          <div class="content">
+            <h2>1976</h2>
+            <p>Great Expectations, a video dating service, is founded, but stigma prevents it from becoming mainstream.</p>
+          </div>
+        </div>
+        <div class="event-container right online-video">
+          <div class="content">
+            <h2>1987</h2>
+            <p>TelePersonals launches in Toronto as a telephone dating service, later becoming LavaLife in the early 2000s.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段 5：The Rise of Online Dating -->
+    <div class="segment rise-online" data-segment="rise-online">
+      <div class="summary-dot rise-online">
+        <span class="icon">🌐</span>
+      </div>
+      <div class="summary-label">
+        1990s-2010s<br>The Rise of Online Dating
+      </div>
+      <div class="segment-details">
+        <div class="event-container left rise-online">
+          <div class="content">
+            <h2>1994</h2>
+            <p>Kiss.com, the first modern dating website, launches.</p>
+          </div>
+        </div>
+        <div class="event-container right rise-online">
+          <div class="content">
+            <h2>1999</h2>
+            <p>Gaydar, a popular online dating site for gay men, launches.</p>
+          </div>
+        </div>
+        <div class="event-container left rise-online">
+          <div class="content">
+            <h2>2002</h2>
+            <p>Ashley Madison is launched for extramarital relationships.</p>
+          </div>
+        </div>
+        <div class="event-container right rise-online">
+          <div class="content">
+            <h2>2006</h2>
+            <p>MeetMoi launches as the first location-based dating application.</p>
+          </div>
+        </div>
+        <div class="event-container left rise-online">
+          <div class="content">
+            <h2>2007-2008</h2>
+            <p>DNA-based matchmaking services (ScientificMatch.com, GenePartner) emerge.</p>
+          </div>
+        </div>
+        <div class="event-container right rise-online">
+          <div class="content">
+            <h2>2009</h2>
+            <p>Grindr, the first major dating app for gay, bi, and trans individuals, launches.</p>
+          </div>
+        </div>
+        <div class="event-container left rise-online">
+          <div class="content">
+            <h2>2010</h2>
+            <p>Scruff launches for the LGBTQ+ community.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分段 6：The Era of Dating Apps -->
+    <div class="segment era-apps" data-segment="era-apps">
+      <div class="summary-dot era-apps">
+        <span class="icon">📱</span>
+      </div>
+      <div class="summary-label">
+        2010s-Present<br>The Era of Dating Apps
+      </div>
+      <div class="segment-details">
+        <div class="event-container right era-apps">
+          <div class="content">
+            <h2>2011</h2>
+            <p>Momo, a Chinese social search and messaging app, launches.</p>
+          </div>
+        </div>
+        <div class="event-container left era-apps">
+          <div class="content">
+            <h2>2012</h2>
+            <p>Tinder launches, pioneering the swipe-based matchmaking model.</p>
+          </div>
+        </div>
+        <div class="event-container right era-apps">
+          <div class="content">
+            <h2>2012</h2>
+            <p>Hinge launches with a focus on meaningful relationships ("designed to be deleted").</p>
+          </div>
+        </div>
+        <div class="event-container left era-apps">
+          <div class="content">
+            <h2>2013</h2>
+            <p>Dattch (later HER), the first dating app specifically for queer women, nonbinary, and trans people, launches.</p>
+          </div>
+        </div>
+        <div class="event-container right era-apps">
+          <div class="content">
+            <h2>2014</h2>
+            <p>3nder (later Feeld) launches for polyamorous and alternative dating.</p>
+          </div>
+        </div>
+        <div class="event-container left era-apps">
+          <div class="content">
+            <h2>2014</h2>
+            <p>Bumble launches, introducing a model where only women can initiate conversations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结束页 -->
+  <div id="conclusion">
+    <h2>Significance of the Timeline</h2>
+    <p>This timeline highlights how dating culture has evolved alongside media and technology. Newspapers played a crucial role in early matchmaking, gradually giving way to radio and television dating shows that introduced structured dating formats to the public. The advent of computers in the 1960s led to early online matchmaking, which evolved into internet-based platforms in the 1990s and ultimately mobile dating apps in the 2000s, revolutionizing how people connect romantically.</p>
+    <footer>
+      <p>Created by Hanxi Bao<br>Feb. 2025<br>powered by DeepSeek &amp; ChatGPT</p>
+    </footer>
+  </div>
+
+  <script>
+    // ---------- 开场标题随滚动上移并融合到 header ----------
+    const intro = document.getElementById('intro');
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      if (scrollY < 300) {
+        intro.style.transform = `translateY(-${scrollY}px)`;
+        intro.style.height = `calc(100vh - ${scrollY}px)`;
+      } else {
+        intro.style.opacity = 0;
+        setTimeout(() => { intro.style.display = 'none'; }, 300);
+      }
+    });
+    
+    // ---------- IntersectionObserver 让 summary-dot 自然出现 ----------
+    const summaryDots = document.querySelectorAll('.summary-dot');
+    const dotObserverOptions = { threshold: 0.5 };
+    const dotObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, dotObserverOptions);
+    summaryDots.forEach(dot => dotObserver.observe(dot));
+    
+    // ---------- 点击大圆点展开/收起对应分段详情 ----------
+    const segments = document.querySelectorAll('.segment');
+    segments.forEach(segment => {
+      const dot = segment.querySelector('.summary-dot');
+      dot.addEventListener('click', () => {
+        segment.classList.toggle('expanded');
+      });
+    });
+    
+    // ---------- 当结尾区块进入视窗时触发效果 ----------
+    const conclusion = document.getElementById('conclusion');
+    const conclusionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          conclusion.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.5 });
+    conclusionObserver.observe(conclusion);
+    
+    // ---------- 更新进度指示条位置和高度 ----------
+    const progressLine = document.getElementById('progress-line');
+    const timeline = document.querySelector('.timeline');
+    window.addEventListener('scroll', () => {
+      const viewportHeight = window.innerHeight;
+      const viewportCenter = viewportHeight / 2;
+      const timelineRect = timeline.getBoundingClientRect();
+      if (timelineRect.top < viewportCenter && timelineRect.bottom > viewportCenter) {
+        const maxHeight = 100; 
+        const availableHeight = timelineRect.bottom - (viewportCenter - maxHeight / 2);
+        const newHeight = Math.min(maxHeight, availableHeight);
+        progressLine.style.height = newHeight + 'px';
+        progressLine.style.top = (viewportCenter - newHeight / 2) + 'px';
+      } else {
+        progressLine.style.height = '0px';
+      }
+    });
+  </script>
+</body>
+</html>
